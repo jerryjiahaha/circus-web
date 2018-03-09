@@ -59,7 +59,7 @@ class AsynchronousCircusClient(CircusClient):
                 raise CallError(str(e))
 
         socket = self.context.socket(zmq.DEALER)
-        socket.setsockopt(zmq.IDENTITY, uuid.uuid4().hex)
+        socket.setsockopt(zmq.IDENTITY, uuid.uuid4().hex.encode())
         socket.setsockopt(zmq.LINGER, 0)
         get_connection(socket, self.endpoint, self.ssh_server,
                        self.ssh_keyfile)
@@ -84,7 +84,7 @@ class AsynchronousCircusClient(CircusClient):
             stream.on_recv(recv_callback)
 
         try:
-            socket.send(cmd)
+            socket.send(cmd.encode())
         except zmq.ZMQError as e:
             raise CallError(str(e))
 
