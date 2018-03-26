@@ -1,3 +1,5 @@
+import six
+
 from circus.commands import get_commands
 from circusweb.client import AsynchronousCircusClient
 from circusweb.stats_client import AsynchronousStatsConsumer
@@ -17,6 +19,7 @@ class Controller(object):
 
     @gen.coroutine
     def connect(self, endpoint):
+        print("controller connect, endpoint", endpoint)
         endpoint = str(endpoint)
         if endpoint not in self.clients:
             client = AsynchronousCircusClient(self.loop, endpoint,
@@ -26,6 +29,7 @@ class Controller(object):
             client = self.get_client(endpoint)
         client.count += 1
         self.clients[endpoint] = client
+        print("clients {}".format(self.clients))
 
     def disconnect(self, endpoint):
         endpoint = str(endpoint)
@@ -59,6 +63,10 @@ class Controller(object):
             del self.stats_clients[stats_endpoint]
 
     def get_client(self, endpoint):
+        print("get_client", endpoint)
+        print("clients", self.clients)
+        if not six.PY2 and hasattr(endpoint, "decode"):
+            return self.clients.get(endpoint.decode())
         return self.clients.get(endpoint)
 
     @gen.coroutine

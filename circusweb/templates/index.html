@@ -3,8 +3,8 @@
 % for endpoint, stat_endpoint in endpoints.items():
 <div class="title" style="background-color: #D6D6FF;">
     <div style="float: left;" class="watcher_name">${endpoint} Watchers</div>
-    <div style="float: right;"><a class="reloadconfig" href="${reverse_url('reloadconfig', b64encode(endpoint))}">Reload config</a></div>
-    <div style="float: right;"><a href="#" class="add_watcher" data-add-url="${reverse_url('add_watcher', b64encode(endpoint))}">Add Watcher</a></div>
+    <div style="float: right;"><a class="reloadconfig" href="${reverse_url('reloadconfig', b64encode(endpoint.encode()))}">Reload config</a></div>
+    <div style="float: right;"><a href="#" class="add_watcher" data-add-url="${reverse_url('add_watcher', b64encode(endpoint.encode()))}">Add Watcher</a></div>
 
     <div class="graph_home">
         <span id="circusd" class="sparklines"></span>
@@ -25,13 +25,13 @@
     % for watcher, options in controller.get_client(endpoint).watchers:
         % if watcher not in controller.get_client(endpoint).plugins:
         <div class="watcher">
-            <div style="width: 300px;"><a class="link" href="${reverse_url('watcher', b64encode(endpoint), watcher)}">${watcher}</a></div>
+            <div style="width: 300px;"><a class="link" href="${reverse_url('watcher', b64encode(endpoint.encode()), watcher)}">${watcher}</a></div>
             <div style="width: 80px;">${options['numprocesses']}</div>
             <div style="width: 342px;">${options['cmd']} ${options['args']}</div>
             <div style="width: 50px;">${options['shell']}</div>
             <div style="width: 50px;">${options['uid']}</div>
             <div style="width: 50px;">${options['gid']}</div>
-            <div style="width: 50px;"><a class="watcher-status watcher-status-${controller.get_status(watcher, endpoint)}" title="${controller.get_status(watcher, endpoint)}" href="${reverse_url('switch_status', b64encode(endpoint), watcher)}"></a></div>
+            <div style="width: 50px;"><a class="watcher-status watcher-status-${controller.get_status(watcher, endpoint)}" title="${controller.get_status(watcher, endpoint)}" href="${reverse_url('switch_status', b64encode(endpoint.encode()), watcher)}"></a></div>
         </div>
         % endif
     % endfor
@@ -63,28 +63,28 @@
     <div class="process" style="margin-bottom: 15px">
         <div>
             <span style="display: inline-block; float: left;" class="label">${name or watcher}</span>
-	        <span class="age-stat" id="${watcher}-${b64encode(stat_endpoint)}_last_age"></span>
+	        <span class="age-stat" id="${watcher}-${b64encode(stat_endpoint.encode())}_last_age"></span>
 
             %if display_status:
-            <div style="width: 20px; float: right; margin-right: 10px;"><a class="${controller.get_status(watcher, endpoint)}" title="${controller.get_status(watcher, endpoint)}" href="${reverse_url('switch_status', b64encode(stat_endpoint), watcher)}"></a></div>
+            <div style="width: 20px; float: right; margin-right: 10px;"><a class="${controller.get_status(watcher, endpoint)}" title="${controller.get_status(watcher, endpoint)}" href="${reverse_url('switch_status', b64encode(stat_endpoint.encode()), watcher)}"></a></div>
             %endif
         </div>
 
         <div class="stat">
-            <div id="${watcher}-${b64encode(stat_endpoint)}" class="graph"></div>
+            <div id="${watcher}-${b64encode(stat_endpoint.encode())}" class="graph"></div>
             %if socket:
             <div class="metrics" >
                 <span class="metric_label">Reads</span>
-                <span class="metric_value" id="${watcher}-${b64encode(stat_endpoint)}_last_reads">0</span>
+                <span class="metric_value" id="${watcher}-${b64encode(stat_endpoint.encode())}_last_reads">0</span>
             </div>
             %else:
             <div class="metrics cpu">
                 <span class="metric_label">CPU</span>
-                <span class="metric_value" id="${watcher}-${b64encode(stat_endpoint)}_last_cpu">0 %</span>
+                <span class="metric_value" id="${watcher}-${b64encode(stat_endpoint.encode())}_last_cpu">0 %</span>
             </div>
             <div class="metrics mem">
                 <span class="metric_label">Mem</span>
-                <span class="metric_value" id="${watcher}-${b64encode(stat_endpoint)}_last_mem">0 %</span>
+                <span class="metric_value" id="${watcher}-${b64encode(stat_endpoint.encode())}_last_mem">0 %</span>
             </div>
             %endif
         </div>
@@ -99,7 +99,7 @@
  %endif
 
  %if controller.get_client(endpoint).use_sockets:
- ${draw_graph_div('socket-stats', 'Socket Activity (<a href="' + reverse_url('sockets', b64encode(endpoint)) + '">see all the sockets for the endpoint</a>)', socket=True, endpoint=endpoint, stat_endpoint=stat_endpoint)}
+ ${draw_graph_div('socket-stats', 'Socket Activity (<a href="' + reverse_url('sockets', b64encode(endpoint.encode())) + '">see all the sockets for the endpoint</a>)', socket=True, endpoint=endpoint, stat_endpoint=stat_endpoint)}
  %endif
 
  %for plugin in controller.get_client(endpoint).plugins:
@@ -159,18 +159,18 @@ $(document).ready(function () {
     var socket = io.connect('${SERVER}');
     var watchers = [];
     % for endpoint, stat_endpoint in endpoints.items():
-        watchers.push(['circusd-stats', ${dumps(b64encode(stat_endpoint))}]);
-        watchers.push(['circus', ${dumps(b64encode(stat_endpoint))}]);
+        watchers.push(['circusd-stats', ${dumps(b64encode(stat_endpoint.encode()).decode())}]);
+        watchers.push(['circus', ${dumps(b64encode(stat_endpoint.encode()).decode())}]);
         %if controller.get_client(endpoint).use_sockets:
-            watchers.push(['sockets', ${dumps(b64encode(stat_endpoint))}]);
+            watchers.push(['sockets', ${dumps(b64encode(stat_endpoint.encode()).decode())}]);
         %endif
         %if controller.get_client(endpoint).embed_httpd:
-            watchers.push(['circushttpd', ${dumps(b64encode(stat_endpoint))}]);
+            watchers.push(['circushttpd', ${dumps(b64encode(stat_endpoint.encode()).decode())}]);
         %endif
         %for plugin in controller.get_client(endpoint).plugins:
-            watchers.push(['${plugin}', ${dumps(b64encode(stat_endpoint))}]);
+            watchers.push(['${plugin}', ${dumps(b64encode(stat_endpoint.encode()).decode())}]);
         %endfor
     % endfor
-    supervise(socket, watchers, undefined, ${dumps(list(endpoints.keys()))}, ${dumps(endpoints.values())});
+    supervise(socket, watchers, undefined, ${dumps(list(endpoints.keys()))}, ${dumps(list(endpoints.values()))});
 });
 </script>

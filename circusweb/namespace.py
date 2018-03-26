@@ -54,7 +54,7 @@ class SocketIOConnection(tornadio2.SocketConnection):
 
     @classmethod
     def consume_stats(cls, watcher, pid, stat, stat_endpoint):
-        stat_endpoint_b64 = b64encode(stat_endpoint)
+        stat_endpoint_b64 = b64encode(stat_endpoint.encode())
         for p in cls.participants[stat_endpoint]:
             if watcher == 'sockets':
                 # if we get information about sockets and we explicitely

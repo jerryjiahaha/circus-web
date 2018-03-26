@@ -62,6 +62,10 @@ def require_logged_user(func):
     @wraps(func)
     def wrapped(self, *args, **kwargs):
         controller = get_controller()
+        logger.info("require_logged_user controller {}".format(controller))
+        logger.info("self.session {}".format(self.session))
+        logger.info("session.endpoints {}".format(self.session.endpoints))
+        logger.info("self.session.connected {}".format(self.session.connected))
 
         if not self.session.connected or not controller:
             self.clean_user_session()
@@ -76,12 +80,14 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def prepare(self):
         session_id = self.get_secure_cookie('session_id')
-        if not session_id or not SessionManager.get(session_id):
+        logger.info("session_id: {}".format(session_id))
+        if not session_id or not SessionManager.get(session_id.decode()):
+            logger.info("create new session")
             session_id = uuid4().hex
             session = SessionManager.new(session_id)
             self.set_secure_cookie('session_id', session_id)
         else:
-            session = SessionManager.get(session_id)
+            session = SessionManager.get(session_id.decode())
         self.session = session
         self.session_id = session_id
 
@@ -114,6 +120,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 'endpoints_list': app.auto_discovery.get_endpoints(),
                 'endpoints': endpoints})
 
+        print("endpoints:", endpoints)
         namespace.update(data)
 
         try:
@@ -158,7 +165,9 @@ class ConnectHandler(BaseHandler):
     @gen.coroutine
     def post(self):
         endpoints_list = list(self.session.endpoints)
+        logger.info("endpoints_list {}".format(endpoints_list))
         endpoints = self.get_arguments('endpoint_list', strip=False)
+        logger.info("endpoints {}".format(endpoints))
 
         # If no selection in list
         if not endpoints:
@@ -169,11 +178,13 @@ class ConnectHandler(BaseHandler):
             raise StopIteration()
 
         for endpoint in endpoints:
+            logger.info("current endpoint {}".format(endpoint))
             try:
                 yield gen.Task(connect_to_circus,
                                tornado.ioloop.IOLoop.instance(),
                                endpoint)
             except CallError:
+                logger.info("CallError")
                 self.session.messages.append("Impossible to connect to %s" %
                                              endpoint)
             else:
@@ -184,6 +195,9 @@ class ConnectHandler(BaseHandler):
             if endpoint not in endpoints:
                 self.session.endpoints.remove(endpoint)
 
+        logger.info("session.endpoints {}".format(self.session.endpoints))
+        logger.info("connected {}".format(self.session.connected))
+        logger.info("redirect to index")
         self.redirect(self.reverse_url('index'))
 
 
@@ -220,11 +234,13 @@ class WatcherHandler(BaseHandler):
     @tornado.web.asynchronous
     @gen.coroutine
     def get(self, endpoint, name):
+        logger.info("endpoint: {0}, name: {1}".format(endpoint, name))
         controller = get_controller()
         endpoint = b64decode(endpoint)
+        logger.info("endpoint decode: {0}".format(endpoint))
         pids = yield gen.Task(controller.get_pids, name, endpoint)
         self.finish(self.render_template('watcher.html', pids=pids, name=name,
-                                         endpoint=endpoint))
+                                         endpoint=str(endpoint.decode())))
 
 
 class WatcherSwitchStatusHandler(BaseHandler):
@@ -363,13 +379,14 @@ class Application(tornado.web.Application):
 
         self.loader = MakoTemplateLoader(TMPLDIR)
         self.router = tornadio2.TornadioRouter(SocketIOConnection)
+        print(self.router.urls)
         handlers += self.router.urls
 
         settings = {
             'template_loader': self.loader,
             'static_path': STATIC_PATH,
             'debug': True,
-            'cookie_secret': 'fxCIK+cbRZe6zhwX8yIQDVS54LFfB0I+nQt0pGp3IY0='
+            'cookie_secret': str(b64encode(uuid4().bytes + uuid4().bytes).decode())
         }
 
         tornado.web.Application.__init__(self, handlers, **settings)

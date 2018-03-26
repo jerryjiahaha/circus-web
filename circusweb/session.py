@@ -23,6 +23,7 @@ def disconnect_from_circus(endpoint):
 
 @gen.coroutine
 def connect_to_circus(loop, endpoint, ssh_server=None):
+    print("connect_to_circus {}".format(endpoint))
     if get_controller() is None:
         controller = Controller(loop, ssh_server=ssh_server)
         set_controller(controller)
@@ -56,6 +57,7 @@ class SessionManager(object):
     def new(cls, session_id):
         session = Session()
         cls.sessions[session_id] = session
+        print(cls.sessions)
         return session
 
     @classmethod

@@ -7,7 +7,7 @@ if not hasattr(sys, 'version_info') or sys.version_info < (2, 6, 0, 'final'):
 
 
 install_requires = ['Mako', 'MarkupSafe', 'anyjson', 'six',
-                    'pyzmq', 'circus', 'tornado', 'tornadIO2==0.0.3', 'tomako']
+                    'pyzmq', 'circus', 'tornado', 'tornadIO2==0.0.5', 'tomako']
 
 try:
     import argparse     # NOQA
@@ -38,7 +38,7 @@ setup(name='circus-web',
           "Development Status :: 3 - Alpha"],
       install_requires=install_requires,
       dependency_links=[
-          'https://github.com/tomassedovic/tornadio2/archive/python3.zip#egg=tornadIO2-0.0.3',
+          'https://github.com/jerryjiahaha/tornadio2/archive/python3.zip#egg=tornadIO2-0.0.5',
       ],
       tests_require=['webtest', 'unittest2'],
       test_suite='circusweb.tests',
